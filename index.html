@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mood Clock</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      transition: background-color 1s, color 1s;
+      text-align: center;
+    }
+    h1 {
+      font-size: 3em;
+    }
+    #quote {
+      font-style: italic;
+      margin-top: 1em;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="greeting"></h1>
+  <div id="quote"></div>
+
+  <script>
+    const greetingEl = document.getElementById('greeting');
+    const quoteEl = document.getElementById('quote');
+
+    const hour = new Date().getHours();
+
+    if (hour >= 6 && hour < 12) {
+      document.body.style.backgroundColor = '#FFFAE3';
+      document.body.style.color = '#333';
+      greetingEl.textContent = 'Good Morning!';
+      quoteEl.textContent = 'Rise and shine – it’s a new day!';
+    } else if (hour >= 12 && hour < 18) {
+      document.body.style.backgroundColor = '#FFE4B5';
+      document.body.style.color = '#111';
+      greetingEl.textContent = 'Good Afternoon!';
+      quoteEl.textContent = 'Keep going, you’re doing great!';
+    } else if (hour >= 18 && hour < 22) {
+      document.body.style.backgroundColor = '#FFDAB9';
+      document.body.style.color = '#000';
+      greetingEl.textContent = 'Good Evening!';
+      quoteEl.textContent = 'Take some time to unwind.';
+    } else {
+      document.body.style.backgroundColor = '#1a1a2e';
+      document.body.style.color = '#f0f0f0';
+      greetingEl.textContent = 'Good Night!';
+      quoteEl.textContent = 'Rest well and recharge.';
+    }
+  </script>
+</body>
+</html>
