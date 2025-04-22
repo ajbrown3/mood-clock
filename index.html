@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Mood Clock</title>
   <style>
     body {
@@ -16,29 +16,43 @@
       transition: background 1s, color 1s;
       text-align: center;
       overflow: hidden;
+      padding: 20px;
     }
     h1 {
-      font-size: 3em;
+      font-size: 2.5em;
+      margin: 0.3em 0;
     }
     #quote {
       font-style: italic;
-      margin-top: 1em;
-      font-size: 1.2em;
+      font-size: 1.1em;
+      margin: 0.5em 0 1em;
     }
     .emoji {
       font-size: 4em;
       animation: float 4s ease-in-out infinite;
     }
-    @keyframes float {
-      0% { transform: translateY(0); }
-      50% { transform: translateY(-20px); }
-      100% { transform: translateY(0); }
+    #clock {
+      font-size: 1.5em;
+      margin-top: 0.5em;
+    }
+    .mood-buttons {
+      margin-top: 1.5em;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .mood-buttons button {
+      margin: 6px;
+      padding: 10px 15px;
+      font-size: 1em;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
     }
     .stars {
       position: absolute;
       width: 100%;
       height: 100%;
-      background: transparent;
       pointer-events: none;
     }
     .star {
@@ -53,22 +67,98 @@
       0%, 100% { opacity: 0.2; }
       50% { opacity: 1; }
     }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 2em; }
+      #quote, #clock { font-size: 1em; }
+      .emoji { font-size: 3em; }
+    }
   </style>
 </head>
 <body>
-  <div class="emoji" id="emoji"></div>
-  <h1 id="greeting"></h1>
-  <div id="quote"></div>
+  <div class="emoji" id="emoji">🕒</div>
+  <h1 id="greeting">Welcome!</h1>
+  <div id="quote">Loading...</div>
+  <div id="clock">--:--</div>
+
+  <div class="mood-buttons">
+    <button onclick="setMood('morning')">Morning</button>
+    <button onclick="setMood('afternoon')">Afternoon</button>
+    <button onclick="setMood('evening')">Evening</button>
+    <button onclick="setMood('night')">Night</button>
+    <button onclick="setMood('stormy')">Stormy</button>
+    <button onclick="setMood('party')">Party</button>
+  </div>
+
   <div class="stars" id="stars"></div>
+
+  <audio id="sound" loop></audio>
 
   <script>
     const greetingEl = document.getElementById('greeting');
     const quoteEl = document.getElementById('quote');
     const emojiEl = document.getElementById('emoji');
     const starsEl = document.getElementById('stars');
-    const hour = new Date().getHours();
+    const clockEl = document.getElementById('clock');
+    const audioEl = document.getElementById('sound');
+
+    const moodData = {
+      morning: {
+        bg: 'linear-gradient(to top, #FFFAE3, #fff0c1)',
+        color: '#333',
+        greeting: 'Good Morning!',
+        quote: 'Rise and shine – it’s a new day!',
+        emoji: '☀️',
+        sound: 'https://cdn.pixabay.com/download/audio/2022/03/16/audio_b7c6363ad0.mp3?filename=birds-ambient-nature-110193.mp3',
+      },
+      afternoon: {
+        bg: 'linear-gradient(to bottom, #FFE4B5, #fff5d1)',
+        color: '#111',
+        greeting: 'Good Afternoon!',
+        quote: 'Keep going, you’re doing great!',
+        emoji: '⛅',
+        sound: 'https://cdn.pixabay.com/download/audio/2022/03/16/audio_8c2fdf7881.mp3?filename=relaxing-cafe-ambience-110199.mp3',
+      },
+      evening: {
+        bg: 'linear-gradient(to top, #FFDAB9, #FFB6C1)',
+        color: '#000',
+        greeting: 'Good Evening!',
+        quote: 'Take some time to unwind.',
+        emoji: '🌇',
+        sound: 'https://cdn.pixabay.com/download/audio/2022/03/22/audio_7c6f453b52.mp3?filename=chill-ambient-112837.mp3',
+      },
+      night: {
+        bg: 'radial-gradient(#1a1a2e, #000000)',
+        color: '#f0f0f0',
+        greeting: 'Good Night!',
+        quote: 'Rest well and recharge.',
+        emoji: '🌙',
+        sound: 'https://cdn.pixabay.com/download/audio/2021/10/28/audio_1fa843d17e.mp3?filename=forest-night-ambience-103371.mp3',
+      },
+      stormy: {
+        bg: 'linear-gradient(to top, #4B4E6D, #2C2E43)',
+        color: '#D6E4E5',
+        greeting: 'Storm’s coming.',
+        quote: 'Even gray skies bring growth.',
+        emoji: '⛈️',
+        sound: 'https://cdn.pixabay.com/download/audio/2021/11/22/audio_61b4a46b76.mp3?filename=rain-and-thunder-ambient-111132.mp3'
+      },
+      party: {
+        bg: 'linear-gradient(45deg, #FF00CC, #3333FF)',
+        color: '#FFFFFF',
+        greeting: 'It’s party time!',
+        quote: 'Dance like nobody’s watching 🎉',
+        emoji: '🎉',
+        sound: 'https://cdn.pixabay.com/download/audio/2022/02/23/audio_10e61e2b6b.mp3?filename=party-beat-109021.mp3'
+      }
+    };
 
     function createStars() {
+      starsEl.innerHTML = '';
       for (let i = 0; i < 100; i++) {
         const star = document.createElement('div');
         star.className = 'star';
@@ -78,32 +168,40 @@
       }
     }
 
-    if (hour >= 6 && hour < 12) {
-      document.body.style.background = 'linear-gradient(to top, #FFFAE3, #fff0c1)';
-      document.body.style.color = '#333';
-      greetingEl.textContent = 'Good Morning!';
-      quoteEl.textContent = 'Rise and shine – it’s a new day!';
-      emojiEl.textContent = '☀️';
-    } else if (hour >= 12 && hour < 18) {
-      document.body.style.background = 'linear-gradient(to bottom, #FFE4B5, #fff5d1)';
-      document.body.style.color = '#111';
-      greetingEl.textContent = 'Good Afternoon!';
-      quoteEl.textContent = 'Keep going, you’re doing great!';
-      emojiEl.textContent = '⛅';
-    } else if (hour >= 18 && hour < 22) {
-      document.body.style.background = 'linear-gradient(to top, #FFDAB9, #FFB6C1)';
-      document.body.style.color = '#000';
-      greetingEl.textContent = 'Good Evening!';
-      quoteEl.textContent = 'Take some time to unwind.';
-      emojiEl.textContent = '🌇';
-    } else {
-      document.body.style.background = 'radial-gradient(#1a1a2e, #000000)';
-      document.body.style.color = '#f0f0f0';
-      greetingEl.textContent = 'Good Night!';
-      quoteEl.textContent = 'Rest well and recharge.';
-      emojiEl.textContent = '🌙';
-      createStars();
+    function setMood(moodKey) {
+      const mood = moodData[moodKey];
+      document.body.style.background = mood.bg;
+      document.body.style.color = mood.color;
+      greetingEl.textContent = mood.greeting;
+      quoteEl.textContent = mood.quote;
+      emojiEl.textContent = mood.emoji;
+      audioEl.src = mood.sound;
+      audioEl.play().catch(() => {}); // prevents autoplay errors
+
+      if (moodKey === 'night') {
+        createStars();
+      } else {
+        starsEl.innerHTML = '';
+      }
     }
+
+    function autoSetMoodByTime() {
+      const hour = new Date().getHours();
+      if (hour >= 6 && hour < 12) setMood('morning');
+      else if (hour >= 12 && hour < 18) setMood('afternoon');
+      else if (hour >= 18 && hour < 22) setMood('evening');
+      else setMood('night');
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      clockEl.textContent = time;
+    }
+
+    autoSetMoodByTime();
+    updateClock();
+    setInterval(updateClock, 60000);
   </script>
 </body>
 </html>
